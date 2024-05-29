@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Downloader</title>
+</head>
+<body>
+    <h1>YouTube Downloader</h1>
+    <input type="text" id="url" placeholder="Enter YouTube URL">
+    <button onclick="downloadVideo()">Download</button>
+    <p id="message"></p>
+
+    <script>
+        function downloadVideo() {
+            const url = document.getElementById('url').value;
+            const messageElement = document.getElementById('message');
+            messageElement.textContent = '';
+
+            if (!url) {
+                messageElement.textContent = 'Please enter a YouTube URL.';
+                return;
+            }
+
+            fetch('/download', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ url: url })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => { throw new Error(err.error) });
+                }
+                return response.blob();
+            })
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = 'video.mp4';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+            })
+            .catch(error => {
+                messageElement.textContent = 'Error: ' + error.message;
+            });
+        }
+    </script>
+</body>
+</html>
+
